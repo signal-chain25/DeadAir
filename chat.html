@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dead Air Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div class="crt">
+    <h2 id="room-name">Room</h2>
+    <div id="messages" class="messages"></div>
+    <form id="form">
+      <input id="input" autocomplete="off" placeholder="Say something..." />
+      <button>Send</button>
+    </form>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const room = params.get("room") || "chaos";
+    document.getElementById("room-name").innerText = "#" + room;
+
+    const socket = io();
+    const name = "Ghost" + Math.floor(Math.random() * 999);
+
+    socket.emit("join", room);
+
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+    const messages = document.getElementById("messages");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit("chat message", { room, name, msg: input.value });
+        input.value = "";
+      }
+    });
+
+    socket.on("chat message", function(data) {
+      const item = document.createElement("div");
+      item.textContent = `[${data.name}]: ${data.msg}`;
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    });
+  </script>
+</body>
+</html>
